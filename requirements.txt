@@ -1,0 +1,17 @@
+# Python Packages
+requests==2.28.1
+pandas==1.5.3
+psycopg2-binary==2.9.5
+
+# System Packages (Ubuntu)
+git
+postgresql
+postgresql-contrib
+
+# macOS (via Homebrew)
+# git
+# postgresql
+
+# Windows (via Chocolatey)
+# git
+# postgresql
