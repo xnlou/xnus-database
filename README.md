@@ -8,4 +8,4 @@ database repo for .sql files for ubuntu server
    python3 -m venv myenv
    source myenv/bin/activate
    pip install -r requirements.txt
-3. Use crontab -e to schedule your scripts.
+3. Use crontab -e to schedule your scripts
