@@ -1,6 +1,7 @@
 import requests
 import json
 from datetime import datetime
+import os
 
 def save_json_data(data, output_dir, base_filename='data'):
     """
@@ -10,7 +11,6 @@ def save_json_data(data, output_dir, base_filename='data'):
     :param output_dir: Directory to save the file
     :param base_filename: Base name of the file before the timestamp
     """
-    import os
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
