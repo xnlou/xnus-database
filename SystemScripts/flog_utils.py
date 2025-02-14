@@ -61,8 +61,3 @@ def fLog(message, process_type="default"):
         logging.info(formatted_message)
     except Exception as e:
         print(f"Error logging message: {e}")
-
-def close_log():
-    global log_file
-    if log_file:
-        log_file.close()
