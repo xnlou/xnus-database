@@ -7,7 +7,6 @@ session_uuid = str(uuid.uuid4())
 log_counter = 0
 start_time = None
 last_log_time = None
-log_file = None
 process_type = "default"  # Default process type, can be changed or set dynamically
 
 def setup_logging(log_file_path):
