@@ -11,7 +11,7 @@ log_file = None
 process_type = "default"  # Default process type, can be changed or set dynamically
 
 def setup_logging(log_file_path):
-    global session_uuid, log_counter, start_time, last_log_time, log_file
+    global session_uuid, log_counter, start_time, last_log_time
     
     # Reset counters and times
     log_counter = 0
@@ -20,9 +20,6 @@ def setup_logging(log_file_path):
     
     # Ensure the directory exists
     os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
-    
-    # Explicitly open the file for writing
-    log_file = open(log_file_path, 'a')  # 'a' for append, change to 'w' for overwrite
     
     # Setup logging to use this file handler
     logger = logging.getLogger()
