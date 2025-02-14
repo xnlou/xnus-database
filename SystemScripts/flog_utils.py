@@ -8,6 +8,7 @@ log_counter = 0
 start_time = None
 last_log_time = None
 log_file = None
+process_type = "default"  # Default process type, can be changed or set dynamically
 
 def setup_logging(log_file_path):
     global session_uuid, log_counter, start_time, last_log_time, log_file
@@ -37,7 +38,7 @@ def setup_logging(log_file_path):
     
     return session_uuid
 
-def fLog(message):
+def fLog(message, process_type="default"):
     global log_counter, last_log_time
     
     try:
@@ -47,14 +48,17 @@ def fLog(message):
         total_runtime = current_time - start_time
         step_runtime = current_time - last_log_time
         
-        # Format the log message with all the required information
-        formatted_message = f"Counter: {log_counter} - UUID: {session_uuid} - Step Runtime: {step_runtime:.2f} - Total Runtime: {total_runtime:.2f} - {message}"
+        # Get the current user
+        current_user = os.getlogin()  # This gets the username of the logged-in user
+        
+        # Format the log message with all the required information including the user and process type
+        formatted_message = f"Counter: {log_counter} - UUID: {session_uuid} - Process Type: {process_type} - Step Runtime: {step_runtime:.2f} - Total Runtime: {total_runtime:.2f} - {message} - User: {current_user}"
         
         last_log_time = current_time
         
         # Explicitly write to the file
-        with open(log_file.name, 'a') as log:
-            log.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - {formatted_message}\n")
+        # with open(log_file.name, 'a') as log:
+        #     log.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - {formatted_message}\n")
         
         # Log using Python's logging for any other handlers or for consistency
         logging.info(formatted_message)
