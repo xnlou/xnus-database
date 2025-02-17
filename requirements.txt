@@ -5,9 +5,9 @@ psycopg2-binary==2.9.5
 matplotlib==3.7.1
 
 # System Packages (Ubuntu)
-git
-postgresql
-postgresql-contrib
+#git
+#postgresql
+#postgresql-contrib
 
 # macOS (via Homebrew)
 # git

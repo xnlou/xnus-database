@@ -6,8 +6,8 @@ sudo chmod 770 /home/xnus01
 # Update package lists
 sudo apt update
 
-# Install required system packages
-sudo apt install -y git postgresql postgresql-contrib cron
+# Install required system packages, including python3-venv
+sudo apt install -y git postgresql postgresql-contrib cron python3.12-venv
 
 # Start and enable cron service
 sudo systemctl start cron
@@ -51,8 +51,6 @@ sudo chmod -R 2775 /home/xnus01  # Ensure new files inherit group permissions
 sudo setfacl -d -m group:etl_group:rwx /home/xnus01
 sudo setfacl -m group:etl_group:rwx /home/xnus01
 
-
-
 # Create necessary subdirectories
 sudo -u etl_user mkdir -p "$PROJECT_DIR/file_watcher"
 sudo -u etl_user mkdir -p "$PROJECT_DIR/logs"
@@ -64,7 +62,9 @@ if [ ! -d "venv" ]; then
     python3 -m venv venv
 fi
 source venv/bin/activate
-pip install -r requirements.txt
+
+# Install dependencies, making sure to reference the correct path for requirements.txt
+pip install -r /home/xnus01/git-repos/xnus-database/requirements.txt
 
 # Ensure etl_user has access to the virtual environment
 sudo chown -R xnus01:etl_group venv
