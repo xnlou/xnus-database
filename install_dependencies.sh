@@ -13,14 +13,17 @@ sudo apt install -y git postgresql postgresql-contrib cron python3.12-venv
 sudo systemctl start cron
 sudo systemctl enable cron
 
-# Create etl_user if it doesn't exist
-if ! id -u etl_user > /dev/null 2>&1; then
-    sudo useradd -m -s /bin/bash -G etl_group etl_user
-fi
+# Prevent laptop from suspending when lid is closed
+sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
 
 # Ensure PostgreSQL is running
 sudo systemctl restart postgresql
 sudo systemctl enable postgresql
+
+# Create etl_user if it doesn't exist
+if ! id -u etl_user > /dev/null 2>&1; then
+    sudo useradd -m -s /bin/bash -G etl_group etl_user
+fi
 
 # Create the project directory if it doesn't exist
 PROJECT_DIR="/home/xnus01/projects/etl_hub"
