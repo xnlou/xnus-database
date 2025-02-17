@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Adjust home directory permissions to allow group write access
+sudo chmod 770 /home/xnus01
+
 # Update package lists
 sudo apt update
 
@@ -12,11 +15,11 @@ sudo systemctl enable cron
 
 # Create etl_user if it doesn't exist
 if ! id -u etl_user > /dev/null 2>&1; then
-    sudo adduser --system --group etl_user
+    sudo useradd -m -s /bin/bash -G etl_group etl_user
 fi
 
 # Ensure PostgreSQL is running
-sudo systemctl start postgresql
+sudo systemctl restart postgresql
 sudo systemctl enable postgresql
 
 # Create the project directory if it doesn't exist
@@ -37,9 +40,18 @@ fi
 sudo usermod -aG etl_group xnus01
 sudo usermod -aG etl_group etl_user
 
-# Change group ownership to etl_group and set permissions
-sudo chgrp -R etl_group "$PROJECT_DIR"
-sudo chmod -R 770 "$PROJECT_DIR"
+# Set etl_user's home directory to /home/xnus01 (without creating a new one)
+sudo usermod -d /home/xnus01 etl_user
+
+# Change group ownership and permissions
+sudo chown -R xnus01:etl_group /home/xnus01
+sudo chmod -R 2775 /home/xnus01  # Ensure new files inherit group permissions
+
+# Set default ACLs so new files/folders have correct permissions
+sudo setfacl -d -m group:etl_group:rwx /home/xnus01
+sudo setfacl -m group:etl_group:rwx /home/xnus01
+
+
 
 # Create necessary subdirectories
 sudo -u etl_user mkdir -p "$PROJECT_DIR/file_watcher"
