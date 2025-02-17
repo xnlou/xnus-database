@@ -20,7 +20,7 @@ sudo systemctl start postgresql
 sudo systemctl enable postgresql
 
 # Create the project directory if it doesn't exist
-PROJECT_DIR="/home/xnus01/projects/your_project_name"
+PROJECT_DIR="/home/xnus01/projects/etl_hub"
 if [ ! -d "$PROJECT_DIR" ]; then
     mkdir -p "$PROJECT_DIR"
 fi
