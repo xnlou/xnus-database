@@ -5,9 +5,9 @@ set -e  # Exit immediately if a command exits with a non-zero status
 CURRENT_USER=$(whoami)
 HOME_DIR="/home/$CURRENT_USER"
 
-LOG_FILE="/home/xnus01/install_dependencies.log"
+LOG_FILE="$HOME_DIR/install_dependencies.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
-echo "=== Installation started at $(date) ==="
+echo "=== Installation started at $(date) by $CURRENT_USER ==="
 
 echo "Ensuring 'universe' repository is enabled..."
 sudo add-apt-repository universe -y
@@ -44,28 +44,28 @@ if ! id -u etl_user > /dev/null 2>&1; then
     sudo useradd -m -s /bin/bash -G etl_group etl_user && echo "etl_user created."
 fi
 
-echo "Adding xnus01 and etl_user to etl_group..."
-sudo usermod -aG etl_group xnus01
+echo "Adding $CURRENT_USER and etl_user to etl_group..."
+sudo usermod -aG etl_group "$CURRENT_USER"
 sudo usermod -aG etl_group etl_user
 echo "Users added to etl_group."
 
-echo "Setting etl_user home directory to /home/xnus01..."
-sudo usermod -d /home/xnus01 etl_user
+echo "Setting etl_user home directory to $HOME_DIR..."
+sudo usermod -d "$HOME_DIR" etl_user
 
 echo "Adjusting home directory permissions..."
-sudo chown -R xnus01:etl_group /home/xnus01
-sudo chmod -R 2775 /home/xnus01
-sudo setfacl -d -m group:etl_group:rwx /home/xnus01
-sudo setfacl -m group:etl_group:rwx /home/xnus01
+sudo chown -R "$CURRENT_USER":etl_group "$HOME_DIR"
+sudo chmod -R 2775 "$HOME_DIR"
+sudo setfacl -d -m group:etl_group:rwx "$HOME_DIR"
+sudo setfacl -m group:etl_group:rwx "$HOME_DIR"
 echo "Home directory permissions set."
 
-PROJECT_DIR="/home/xnus01/projects/etl_hub"
+PROJECT_DIR="$HOME_DIR/projects/etl_hub"
 
 echo "Creating project directory: $PROJECT_DIR..."
 mkdir -p "$PROJECT_DIR"
 
-echo "Setting primary ownership to xnus01..."
-sudo chown -R xnus01:xnus01 "$PROJECT_DIR"
+echo "Setting primary ownership to $CURRENT_USER..."
+sudo chown -R "$CURRENT_USER":"$CURRENT_USER" "$PROJECT_DIR"
 
 echo "Creating necessary subdirectories..."
 sudo -u etl_user mkdir -p "$PROJECT_DIR/file_watcher"
@@ -73,7 +73,7 @@ sudo -u etl_user mkdir -p "$PROJECT_DIR/logs"
 sudo -u etl_user mkdir -p "$PROJECT_DIR/archive"
 echo "Subdirectories created."
 
-GIT_REPO_DIR="/home/xnus01/git-repos/xnus-database"
+GIT_REPO_DIR="$HOME_DIR/git-repos/xnus-database"
 
 echo "Checking if Git repository exists..."
 if [ ! -d "$GIT_REPO_DIR" ]; then
@@ -96,7 +96,7 @@ echo "Installing Python dependencies..."
 pip install -r "$GIT_REPO_DIR/requirements.txt" && echo "Python dependencies installed."
 
 echo "Setting permissions for virtual environment..."
-sudo chown -R xnus01:etl_group venv
+sudo chown -R "$CURRENT_USER":etl_group venv
 sudo chmod -R 770 venv
 
 echo "Allowing etl_user to run necessary commands without password..."
