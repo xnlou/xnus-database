@@ -1,99 +1,102 @@
 #!/bin/bash
 set -e  # Exit immediately if a command exits with a non-zero status
 
-# Adjust home directory permissions to allow group write access
-sudo chmod 775 /home/xnus01
+LOG_FILE="/home/xnus01/install_dependencies.log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+echo "=== Installation started at $(date) ==="
 
-# Update package lists
-sudo apt update
+echo "Ensuring 'universe' repository is enabled..."
+sudo add-apt-repository universe -y
+sudo apt update && echo "Package lists updated successfully."
 
-# Install required system packages, including python3.12 and PostgreSQL
-sudo apt install -y git postgresql postgresql-contrib cron python3.12 python3.12-venv python3.12-dev
+echo "Installing dependencies..."
+sudo apt install -y git acl postgresql postgresql-contrib cron python3.12 python3.12-venv python3.12-dev && echo "Dependencies installed."
 
-# Ensure Python 3.12 is the default version
-sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
-sudo update-alternatives --config python3  # You might need to select the correct version manually
+echo "Setting Python 3.12 as default..."
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 2
+sudo update-alternatives --set python3 /usr/bin/python3.12
+echo "Python 3.12 set as default."
 
-# Start and enable cron service
-sudo systemctl start cron
-sudo systemctl enable cron
+echo "Starting and enabling cron service..."
+sudo systemctl start cron && sudo systemctl enable cron && echo "Cron service started and enabled."
 
-# Ensure PostgreSQL is running and enabled at boot
-sudo systemctl restart postgresql
-sudo systemctl enable postgresql
+echo "Ensuring PostgreSQL is running and enabled at boot..."
+sudo systemctl restart postgresql && sudo systemctl enable postgresql && echo "PostgreSQL restarted and enabled."
 
-# Ensure PostgreSQL allows password authentication for users
+echo "Configuring PostgreSQL authentication..."
 sudo sed -i 's/local   all             all                                     peer/local   all             all                                     md5/' /etc/postgresql/*/main/pg_hba.conf
-sudo systemctl restart postgresql
+sudo systemctl restart postgresql && echo "PostgreSQL authentication configured."
 
-# Set PostgreSQL superuser password (change 'your_secure_password')
-sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'your_secure_password';"
+echo "Setting PostgreSQL superuser password..."
+sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'your_secure_password';" && echo "PostgreSQL password set."
 
-# Create etl_group if it doesn't exist
+echo "Creating etl_group if it doesn't exist..."
 if ! getent group etl_group > /dev/null 2>&1; then
-    sudo groupadd etl_group
+    sudo groupadd etl_group && echo "etl_group created."
 fi
 
-# Create etl_user if it doesn't exist
+echo "Creating etl_user if it doesn't exist..."
 if ! id -u etl_user > /dev/null 2>&1; then
-    sudo useradd -m -s /bin/bash -G etl_group etl_user
+    sudo useradd -m -s /bin/bash -G etl_group etl_user && echo "etl_user created."
 fi
 
-# Add xnus01 and etl_user to etl_group
+echo "Adding xnus01 and etl_user to etl_group..."
 sudo usermod -aG etl_group xnus01
 sudo usermod -aG etl_group etl_user
+echo "Users added to etl_group."
 
-# Set etl_user's home directory to /home/xnus01 (without creating a new home directory)
+echo "Setting etl_user home directory to /home/xnus01..."
 sudo usermod -d /home/xnus01 etl_user
 
-# Set permissions for shared directories
+echo "Adjusting home directory permissions..."
 sudo chown -R xnus01:etl_group /home/xnus01
-sudo chmod -R 2775 /home/xnus01  # Ensures new files inherit group permissions
-
-# Set default ACLs so new files/folders inherit correct permissions
+sudo chmod -R 2775 /home/xnus01
 sudo setfacl -d -m group:etl_group:rwx /home/xnus01
 sudo setfacl -m group:etl_group:rwx /home/xnus01
+echo "Home directory permissions set."
 
-# Define project directory
 PROJECT_DIR="/home/xnus01/projects/etl_hub"
 
-# Create the project directory if it doesn't exist
-if [ ! -d "$PROJECT_DIR" ]; then
-    mkdir -p "$PROJECT_DIR"
-fi
+echo "Creating project directory: $PROJECT_DIR..."
+mkdir -p "$PROJECT_DIR"
 
-# Set primary ownership to xnus01
+echo "Setting primary ownership to xnus01..."
 sudo chown -R xnus01:xnus01 "$PROJECT_DIR"
 
-# Create necessary subdirectories
+echo "Creating necessary subdirectories..."
 sudo -u etl_user mkdir -p "$PROJECT_DIR/file_watcher"
 sudo -u etl_user mkdir -p "$PROJECT_DIR/logs"
 sudo -u etl_user mkdir -p "$PROJECT_DIR/archive"
+echo "Subdirectories created."
 
-# Clone Git repository if it does not exist
 GIT_REPO_DIR="/home/xnus01/git-repos/xnus-database"
+
+echo "Checking if Git repository exists..."
 if [ ! -d "$GIT_REPO_DIR" ]; then
-    git clone https://github.com/your-repo/xnus-database.git "$GIT_REPO_DIR"
+    git clone https://github.com/your-repo/xnus-database.git "$GIT_REPO_DIR" && echo "Repository cloned."
 fi
 
-# Install Python dependencies in a virtual environment
+echo "Setting up Python virtual environment..."
 cd "$PROJECT_DIR"
 if [ ! -d "venv" ]; then
-    /usr/bin/python3.12 -m venv venv
+    /usr/bin/python3.12 -m venv venv && echo "Virtual environment created."
 fi
+
+echo "Activating virtual environment..."
 source venv/bin/activate
 
-# Upgrade pip before installing dependencies
-pip install --upgrade pip
+echo "Upgrading pip..."
+pip install --upgrade pip && echo "Pip upgraded."
 
-# Install dependencies, making sure to reference the correct path for requirements.txt
-pip install -r "$GIT_REPO_DIR/requirements.txt"
+echo "Installing Python dependencies..."
+pip install -r "$GIT_REPO_DIR/requirements.txt" && echo "Python dependencies installed."
 
-# Ensure etl_user has access to the virtual environment
+echo "Setting permissions for virtual environment..."
 sudo chown -R xnus01:etl_group venv
 sudo chmod -R 770 venv
 
-# Allow etl_user to run necessary commands without password
+echo "Allowing etl_user to run necessary commands without password..."
 echo "etl_user ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/etl_user
 
-echo "Setup complete. Remember to commit changes to your git repository."
+echo "=== Setup complete at $(date) ==="
+echo "Remember to check $LOG_FILE for any issues."
