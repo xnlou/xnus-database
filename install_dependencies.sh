@@ -9,6 +9,13 @@ LOG_FILE="$HOME_DIR/install_dependencies.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 echo "=== Installation started at $(date) by $CURRENT_USER ==="
 
+# Add the following lines for lid switch configuration
+echo "Configuring lid switch behavior..."
+sudo sed -i 's/#HandleLidSwitch=.*$/HandleLidSwitch=ignore/' /etc/systemd/logind.conf
+sudo sed -i 's/#HandleLidSwitchExternalPower=.*$/HandleLidSwitchExternalPower=ignore/' /etc/systemd/logind.conf
+sudo sed -i 's/#HandleLidSwitchDocked=.*$/HandleLidSwitchDocked=ignore/' /etc/systemd/logind.conf
+sudo systemctl restart systemd-logind && echo "Lid switch behavior configured."
+
 echo "Ensuring 'universe' repository is enabled..."
 sudo add-apt-repository universe -y
 sudo apt update && echo "Package lists updated successfully."
