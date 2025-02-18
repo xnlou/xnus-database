@@ -64,11 +64,17 @@ sudo cp "/etc/postgresql/$PG_VERSION/main/pg_hba.conf" "/etc/postgresql/$PG_VERS
 sudo sed -i 's/local   all             all                                     peer/local   all             all                                     md5/' "/etc/postgresql/$PG_VERSION/main/pg_hba.conf"
 sudo systemctl restart postgresql && echo "PostgreSQL authentication configured." || log_error "Failed to configure PostgreSQL authentication"
 
-# Set PostgreSQL superuser password
-echo "Setting PostgreSQL superuser password..."
-read -s -p "Enter PostgreSQL superuser password: " PGPASSWORD
-echo
-sudo -u postgres psql -c "ALTER USER postgres PASSWORD '$PGPASSWORD';" && echo "PostgreSQL password set." || { log_error "Failed to set PostgreSQL password"; exit 1; }
+# Set PostgreSQL superuser password (only if not already set)
+PG_VERSION=$(ls /etc/postgresql | grep -E '^[0-9]+$' | sort -nr | head -n1)
+if grep -q "local   all             postgres                                peer" "/etc/postgresql/$PG_VERSION/main/pg_hba.conf"; then
+    echo "Setting PostgreSQL superuser password (required for first-time setup)..."
+    read -s -p "Enter PostgreSQL superuser password: " PGPASSWORD
+    echo
+    sudo -u postgres psql -c "ALTER USER postgres PASSWORD '$PGPASSWORD';" && echo "PostgreSQL password set." || { log_error "Failed to set PostgreSQL password"; exit 1; }
+    unset PGPASSWORD
+else
+    echo "PostgreSQL password already configured (md5 authentication in use)."
+fi
 unset PGPASSWORD  # Clear the variable for security
 
 # Create etl_group if it doesn't exist
