@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e  # Exit immediately if a command exits with a non-zero status
 
+# Detect the user running the script
+CURRENT_USER=$(whoami)
+HOME_DIR="/home/$CURRENT_USER"
+
 LOG_FILE="/home/xnus01/install_dependencies.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 echo "=== Installation started at $(date) ==="
