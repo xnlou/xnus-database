@@ -110,7 +110,7 @@ echo "Creating necessary subdirectories..."
 sudo -u etl_user mkdir -p "$PROJECT_DIR/file_watcher" "$PROJECT_DIR/logs" "$PROJECT_DIR/archive" && echo "Subdirectories created." || log_error "Failed to create subdirectories"
 
 # Clone Git repository (replace with your actual repo URL)
-GIT_REPO_URL="https://github.com/your-repo/xnus-database.git"
+GIT_REPO_URL="https://github.com/xnlou/xnus-database.git"
 GIT_REPO_DIR="$HOME_DIR/git-repos/xnus-database"
 echo "Checking if Git repository exists..."
 if [ ! -d "$GIT_REPO_DIR" ]; then
